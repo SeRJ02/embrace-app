@@ -41,6 +41,7 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild({
+    configFile: path.join(clientDir, "..", "vite.config.ts"),
     root: clientDir,
     build: {
       outDir: distDir,
