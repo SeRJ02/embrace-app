@@ -36,7 +36,17 @@ async function buildAll() {
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
-  await viteBuild();
+  await viteBuild({
+    configFile: false,
+    root: ".",
+    build: {
+      rollupOptions: {
+        input: "client/index.html",
+      },
+      outDir: "dist/public",
+      emptyOutDir: true,
+    },
+  });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));
