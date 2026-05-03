@@ -2,6 +2,11 @@ import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const clientDir = path.join(rootDir, "client");
+const distDir = path.join(rootDir, "dist/public");
 
 const allowlist = [
   "@google/generative-ai",
@@ -32,19 +37,19 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  await rm("dist", { recursive: true, force: true });
+  await rm(path.join(rootDir, "dist"), { recursive: true, force: true });
 
   console.log("building client...");
   await viteBuild({
-    root: path.resolve(import.meta.dirname, "client"),
+    root: clientDir,
     build: {
-      outDir: path.resolve(import.meta.dirname, "dist/public"),
+      outDir: distDir,
       emptyOutDir: true,
     },
   });
 
   console.log("building server...");
-  const pkg = JSON.parse(await readFile("package.json", "utf-8"));
+  const pkg = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf-8"));
   const allDeps = [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.devDependencies || {}),
@@ -52,11 +57,11 @@ async function buildAll() {
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
 
   await esbuild({
-    entryPoints: ["server/index.ts"],
+    entryPoints: [path.join(rootDir, "server/index.ts")],
     platform: "node",
     bundle: true,
     format: "cjs",
-    outfile: "dist/index.cjs",
+    outfile: path.join(rootDir, "dist/index.cjs"),
     define: {
       "process.env.NODE_ENV": '"production"',
     },
