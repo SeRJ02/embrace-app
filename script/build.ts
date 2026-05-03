@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const clientDir = path.join(rootDir, "client");
 const distDir = path.join(rootDir, "dist/public");
 
 const allowlist = [
@@ -41,23 +40,12 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild({
-  root: clientDir,
-  resolve: {
-    alias: {
-      "@": path.join(clientDir, "src"),
-      "@shared": path.join(rootDir, "shared"),
-      "@assets": path.join(rootDir, "attached_assets"),
+    configFile: path.join(rootDir, "vite.config.ts"),
+    build: {
+      outDir: distDir,
+      emptyOutDir: true,
     },
-  },
-  plugins: [(await import("@vitejs/plugin-react")).default()],
-  build: {
-    outDir: distDir,
-    emptyOutDir: true,
-    rollupOptions: {
-      input: path.join(clientDir, "index.html"),
-    },
-  },
-});
+  });
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf-8"));
