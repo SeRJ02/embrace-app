@@ -41,15 +41,23 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild({
-    root: clientDir,
-    build: {
-      outDir: distDir,
-      emptyOutDir: true,
-      rollupOptions: {
-        input: path.join(clientDir, "index.html"),
-      },
+  root: clientDir,
+  resolve: {
+    alias: {
+      "@": path.join(clientDir, "src"),
+      "@shared": path.join(rootDir, "shared"),
+      "@assets": path.join(rootDir, "attached_assets"),
     },
-  });
+  },
+  plugins: [(await import("@vitejs/plugin-react")).default()],
+  build: {
+    outDir: distDir,
+    emptyOutDir: true,
+    rollupOptions: {
+      input: path.join(clientDir, "index.html"),
+    },
+  },
+});
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf-8"));
