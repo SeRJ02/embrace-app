@@ -2,21 +2,23 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-const isReplit = process.env.REPL_ID !== undefined;
-const isDev = process.env.NODE_ENV !== "production";
+// Replit-only dev plugins — only loaded inside Replit's environment.
+// On Vercel / CI, REPL_ID is undefined so this stays an empty array.
+const replitPlugins =
+  process.env.REPL_ID !== undefined && process.env.NODE_ENV !== "production"
+    ? await Promise.all([
+        import("@replit/vite-plugin-runtime-error-modal").then((m) =>
+          m.default()
+        ),
+        import("@replit/vite-plugin-cartographer").then((m) =>
+          m.cartographer()
+        ),
+        import("@replit/vite-plugin-dev-banner").then((m) => m.devBanner()),
+      ])
+    : [];
 
 export default defineConfig({
-  plugins: [
-    react(),
-    // Replit-only dev plugins — skipped on Vercel / CI
-    ...(isReplit && isDev
-      ? [
-          (await import("@replit/vite-plugin-runtime-error-modal")).default(),
-          (await import("@replit/vite-plugin-cartographer")).cartographer(),
-          (await import("@replit/vite-plugin-dev-banner")).devBanner(),
-        ]
-      : []),
-  ],
+  plugins: [react(), ...replitPlugins],
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
