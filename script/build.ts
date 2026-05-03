@@ -45,6 +45,9 @@ async function buildAll() {
     build: {
       outDir: distDir,
       emptyOutDir: true,
+      rollupOptions: {
+        input: path.join(clientDir, "index.html"),
+      },
     },
   });
 
